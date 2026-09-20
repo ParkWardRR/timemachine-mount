@@ -1,15 +1,28 @@
+<![CDATA[<div align="center">
+
+# timemachine-mount
+
+**Mount and browse macOS Time Machine backups on Linux.**
+
 [![License: Blue Oak 1.0.0](https://img.shields.io/badge/license-Blue%20Oak%201.0.0-2D6CDF)](https://blueoakcouncil.org/license/1.0.0)
-[![Platform: Linux](https://img.shields.io/badge/platform-Linux-orange)](https://kernel.org)
-[![Shell: Bash](https://img.shields.io/badge/shell-bash-green)](https://www.gnu.org/software/bash/)
-[![GitHub last commit](https://img.shields.io/github/last-commit/ParkWardRR/timemachine-linux)](https://github.com/ParkWardRR/timemachine-linux/commits/main)
-[![GitHub stars](https://img.shields.io/github/stars/ParkWardRR/timemachine-linux)](https://github.com/ParkWardRR/timemachine-linux/stargazers)
+[![Platform: Linux](https://img.shields.io/badge/platform-Linux-orange?logo=linux&logoColor=white)](https://kernel.org)
+[![Shell: Bash](https://img.shields.io/badge/shell-bash-green?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Scripts](https://img.shields.io/badge/scripts-3-informational)](#the-scripts)
 [![Roadmap](https://img.shields.io/badge/roadmap-4%20phases-informational)](ROADMAP.md)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ParkWardRR/timemachine-mount)](https://github.com/ParkWardRR/timemachine-mount/commits/main)
+[![GitHub stars](https://img.shields.io/github/stars/ParkWardRR/timemachine-mount)](https://github.com/ParkWardRR/timemachine-mount/stargazers)
 
-# timemachine-linux
+</div>
 
-Mount and browse macOS Time Machine backups on Linux. Three scripts, zero dependencies beyond FUSE.
+---
+
+Three scripts, zero dependencies beyond FUSE. One mounts, one analyses without mounting, one cleans up.
 
 You have an old Mac backup sitting on a NAS. You need a file from it. You're on Linux. The information you need is scattered across a dozen Stack Overflow posts, half of which are wrong or outdated. This repo is the working answer.
+
+For analysing sparsebundle structure without mounting, see [sparsebundle-tools](https://github.com/ParkWardRR/sparsebundle-tools).
+
+---
 
 ## What you need
 
@@ -42,11 +55,13 @@ If you don't know which format you have, try HFS+ first. The mount script tries 
 
 **Also needed:** FUSE. Most distros have it. If you get `/dev/fuse` errors, run `sudo modprobe fuse`.
 
+---
+
 ## Quick start
 
 ```bash
-git clone https://github.com/ParkWardRR/timemachine-linux.git
-cd timemachine-linux
+git clone https://github.com/ParkWardRR/timemachine-mount.git
+cd timemachine-mount
 
 # Check the bundle health first (no root, no mounting)
 ./analyse-bundle.sh /path/to/MyMac.sparsebundle
@@ -60,9 +75,11 @@ sudo ./mount-tm.sh /path/to/MyMac.sparsebundle "My MacBook Pro"
 
 That's it. The script tells you where it mounted. Browse with `ls`, copy what you need, press Enter to unmount.
 
+---
+
 ## What is a sparsebundle
 
-A sparsebundle is Apple's disk image format for Time Machine network backups. It is not a single file -- it is a directory that pretends to be one. Inside:
+Apple's disk image format for Time Machine network backups. Not a single file — a directory that pretends to be one. Inside:
 
 ```
 MyMac.sparsebundle/
@@ -82,7 +99,9 @@ MyMac.sparsebundle/
 └── token               # lock file (ignorable)
 ```
 
-Each band is a fixed-size chunk (typically 8 MiB). The band count times band size gives you the actual disk usage. The `Info.plist` declares a maximum image size, which is much larger -- that's the virtual disk size, not how much space the backup actually uses.
+Each band is a fixed-size chunk (typically 8 MiB). Band count times band size = actual disk usage. The `Info.plist` declares a maximum image size, which is much larger — that's the virtual disk size, not how much space the backup actually uses.
+
+---
 
 ## The scripts
 
@@ -114,8 +133,6 @@ Quick health check. No mounting, no root required. Reads `Info.plist` and counts
 ./analyse-bundle.sh /volume1/timemachine/MyMac.sparsebundle
 ```
 
-Output:
-
 ```
 sparsebundle: MyMac.sparsebundle
 
@@ -131,11 +148,11 @@ sparsebundle: MyMac.sparsebundle
 
 What the fields mean:
 - **band size**: chunk size, usually 8 MiB (8388608 bytes)
-- **bands**: number of band files -- this times band size is actual disk usage
+- **bands**: number of band files — this times band size is actual disk usage
 - **allocated**: actual data on disk
 - **declared**: virtual disk size from `Info.plist` (always larger than allocated)
-- **band 0**: partition map -- if this is missing, the image is unusable
-- **zero-length**: bands that exist but are empty -- indicates a truncated or corrupted copy
+- **band 0**: partition map — if this is missing, the image is unusable
+- **zero-length**: bands that exist but are empty — indicates a truncated or corrupted copy
 
 Health verdicts:
 - **SOUND**: band 0 exists, no zero-length bands. Likely mountable.
@@ -152,6 +169,8 @@ sudo ./unmount-tm.sh
 # Unmount a specific mount point
 sudo ./unmount-tm.sh /tmp/tm-fs-12345
 ```
+
+---
 
 ## Step by step
 
@@ -210,7 +229,7 @@ HFS+ Time Machine backups have this structure:
 
 Each dated folder is a snapshot. `Latest` is a symlink to the most recent one. Your files are under `Macintosh HD/Users/yourusername/`.
 
-APFS backups have a different structure -- see the APFS section below.
+APFS backups have a different structure — see the APFS section below.
 
 ### Step 4: Clean up
 
@@ -222,6 +241,8 @@ rmdir /tmp/tm-fs /tmp/tm-dmg
 
 Or just use `./unmount-tm.sh`.
 
+---
+
 ## HFS+ vs APFS
 
 **How to tell which you have:**
@@ -229,7 +250,7 @@ Or just use `./unmount-tm.sh`.
 - Backup started on macOS Sierra (10.12) or earlier: HFS+
 - Backup started on High Sierra (10.13) or later: probably APFS
 - Not sure: try mounting as HFS+ first. If it fails, it is APFS.
-- Or check: `file /tmp/tm-dmg/sparsebundle.dmg` -- but this is often unreliable through FUSE.
+- Or check: `file /tmp/tm-dmg/sparsebundle.dmg` — but this is often unreliable through FUSE.
 
 **HFS+:**
 - Well-supported on Linux via `hfsprogs` (in every distro's repos)
@@ -241,10 +262,12 @@ Or just use `./unmount-tm.sh`.
 - Linux support via [`apfs-fuse`](https://github.com/sgan81/apfs-fuse) only
 - Read-only
 - Slower than HFS+ mounts
-- No `Backups.backupdb` -- snapshots are APFS snapshots within the volume
+- No `Backups.backupdb` — snapshots are APFS snapshots within the volume
 - Works for file recovery. Not fast, but it works.
 
 If you have an APFS backup and `apfs-fuse` is not cooperating, your best fallback is booting a macOS VM or using a Mac to pull the files.
+
+---
 
 ## Troubleshooting
 
@@ -272,8 +295,6 @@ In containers (Docker, LXC), FUSE requires `--device /dev/fuse` or `--privileged
 
 ### `sparsebundlefs: command not found`
 
-Install it:
-
 ```bash
 sudo apt install sparsebundlefs      # Debian/Ubuntu (if available)
 # or build from source:
@@ -289,7 +310,7 @@ The sparsebundle is damaged. Common causes:
 - NAS disk errors
 - Time Machine backup was interrupted mid-write
 
-Run `./analyse-bundle.sh` first. If it reports zero-length bands or missing band 0, the image is corrupt. There is no fix -- you need the original or a better copy.
+Run `./analyse-bundle.sh` first. If it reports zero-length bands or missing band 0, the image is corrupt. There is no fix — you need the original or a better copy.
 
 ### Binary plist
 
@@ -310,12 +331,14 @@ Usually means the filesystem inside the sparsebundle does not match what you are
 
 ### Permission denied on band files
 
-If the sparsebundle is on a NAS mount, check that your Linux user has read access to all files in the `bands/` directory. A common issue: Synology sets ownership to a local NAS user. Fix:
+If the sparsebundle is on a NAS mount, check that your Linux user has read access to all files in the `bands/` directory. A common issue: Synology sets ownership to a local NAS user.
 
 ```bash
 # Mount the NAS share with appropriate options
 sudo mount -t cifs //nas/timemachine /mnt/nas -o username=admin,uid=$(id -u),gid=$(id -g),ro
 ```
+
+---
 
 ## NAS notes
 
@@ -358,17 +381,19 @@ Similar layout. Backups typically at:
 /share/Timemachine/<hostname>.sparsebundle
 ```
 
-Same approach: either mount the QNAP share on a Linux box, or SSH into the QNAP. QNAP's QTS has more package support than Synology -- check `opkg` or the App Center.
+Same approach: either mount the QNAP share on a Linux box, or SSH into the QNAP. QNAP's QTS has more package support than Synology — check `opkg` or the App Center.
 
 ### Performance
 
 Mounting a sparsebundle over SMB and then mounting the filesystem inside it means two layers of network I/O. This is slow for large backups.
 
 Best approaches, in order of speed:
-1. **Run directly on the NAS** -- zero network overhead, but limited tooling
-2. **NFS mount** -- faster than SMB for this workload
-3. **Copy the sparsebundle locally** -- slow upfront, fast after
-4. **SMB mount** -- works, but you will notice the latency
+1. **Run directly on the NAS** — zero network overhead, but limited tooling
+2. **NFS mount** — faster than SMB for this workload
+3. **Copy the sparsebundle locally** — slow upfront, fast after
+4. **SMB mount** — works, but you will notice the latency
+
+---
 
 ## The band filename trap
 
@@ -390,7 +415,7 @@ ls bands/ | head -20
 
 `ls` sorts these lexicographically, which puts `10` after `1` and before `2`. The actual order by band number is: `0, 1, 2, ..., 9, a, b, ..., f, 10, 11, ...`
 
-This does not matter for normal use -- `sparsebundlefs` handles it. It matters if you are:
+This does not matter for normal use — `sparsebundlefs` handles it. It matters if you are:
 - Manually inspecting bands
 - Writing scripts that iterate over bands
 - Trying to determine which part of the disk a band maps to
@@ -398,20 +423,31 @@ This does not matter for normal use -- `sparsebundlefs` handles it. It matters i
 To sort bands numerically:
 
 ```bash
-ls bands/ | sort -t/ -k1,1 --sort=version
-# or
 ls bands/ | while read b; do printf '%d %s\n' "0x$b" "$b"; done | sort -n
 ```
 
+---
+
+## Related
+
+- [sparsebundle-tools](https://github.com/ParkWardRR/sparsebundle-tools) — Rust library + CLI for analysing sparsebundle structure, reading raw bytes by logical offset, and streaming bands without mounting. Use it for structural health checks and building tooling on top of the format.
+
+---
+
 ## Limitations
 
-- **Read-only.** These scripts mount everything read-only. You cannot write to the backup, and you should not try.
-- **No incremental restore.** This gives you a mounted filesystem to browse. It does not reconstruct a bootable Mac or handle Time Machine's deduplication logic across snapshots.
+- **Read-only.** Everything mounts read-only. You cannot write to the backup, and you should not try.
+- **No incremental restore.** Gives you a mounted filesystem to browse. Does not reconstruct a bootable Mac or handle Time Machine's deduplication logic.
 - **APFS support is experimental.** `apfs-fuse` works for file recovery but is not a production filesystem driver. Expect slow directory listings on large volumes.
-- **Hard links across snapshots.** HFS+ Time Machine backups use directory hard links for deduplication. Linux's HFS+ driver handles this, but tools like `du` may report wrong sizes because they count hard-linked files multiple times.
-- **Encrypted backups.** If the sparsebundle is encrypted, `sparsebundlefs` cannot open it. You need to decrypt it first on a Mac, or use a tool that supports the encryption format.
+- **Hard links across snapshots.** HFS+ Time Machine backups use directory hard links for deduplication. Linux's HFS+ driver handles this, but `du` may report wrong sizes.
+- **Encrypted backups.** If the sparsebundle is encrypted, `sparsebundlefs` cannot open it. Decrypt on a Mac first.
 - **No macOS metadata.** Extended attributes, resource forks, and ACLs may not survive the mount. File contents are fine; metadata may be partial.
+
+See [ROADMAP.md](ROADMAP.md) for what's planned.
+
+---
 
 ## License
 
-[Blue Oak Model License 1.0.0](LICENSE.md) -- a short, readable, permissive license.
+[Blue Oak Model License 1.0.0](LICENSE.md) — a short, readable, permissive license.
+]]>
