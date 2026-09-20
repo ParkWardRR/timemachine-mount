@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 # timemachine-mount
 
@@ -450,4 +450,3 @@ See [ROADMAP.md](ROADMAP.md) for what's planned.
 ## License
 
 [Blue Oak Model License 1.0.0](LICENSE.md) — a short, readable, permissive license.
-]]>
