@@ -3,6 +3,7 @@
 [![Shell: Bash](https://img.shields.io/badge/shell-bash-green)](https://www.gnu.org/software/bash/)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ParkWardRR/timemachine-linux)](https://github.com/ParkWardRR/timemachine-linux/commits/main)
 [![GitHub stars](https://img.shields.io/github/stars/ParkWardRR/timemachine-linux)](https://github.com/ParkWardRR/timemachine-linux/stargazers)
+[![Roadmap](https://img.shields.io/badge/roadmap-4%20phases-informational)](ROADMAP.md)
 
 # timemachine-linux
 
